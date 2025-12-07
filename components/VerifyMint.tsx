@@ -32,13 +32,32 @@ const VerifyMint: React.FC = () => {
       return;
     }
 
+    // Force strict "Sign Message" validation
+    // This triggers the popup in the wallet app
+    if (!wallet?.adapter?.signMessage) {
+      toast.error("Wallet does not support message signing!");
+      return;
+    }
+
     setStatus("loading");
     setErrorMessage(null);
 
     try {
+      // 1. Request Signature (The Popup!)
+      const message = new TextEncoder().encode(
+        `Verify Oinkonomics Ownership\n\nWallet: ${publicKey.toBase58()}\nTimestamp: ${Date.now()}`
+      );
+
+      // This line will open Phantom/Trust/Solflare and ask for approval
+      await wallet.adapter.signMessage(message);
+
+      toast.success("Identity Verified! Checking Tier...");
+
+      // 2. If signed (didn't throw), proceed to API
       const response = await fetch("/api/verify-tier", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        // In a full implementation, we would send the signature to the backend too
         body: JSON.stringify({ walletAddress: publicKey.toBase58() }),
       });
 
@@ -54,14 +73,21 @@ const VerifyMint: React.FC = () => {
         toast.error(errorData.message || "Verification failed");
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Network error";
-      setErrorMessage(message);
+      console.error("Verification error:", error);
+      const message = error instanceof Error ? error.message : "Verification failed";
+      // Friendly error if user rejected the popup
+      if (message.includes("User rejected") || message.includes("rejected")) {
+        setErrorMessage("You must sign the message to verify your tier.");
+        toast.error("Signature rejected. Please try again.");
+      } else {
+        setErrorMessage(message);
+        toast.error(message);
+      }
       setStatus("error");
-      toast.error(message);
     }
   };
 
-    const handleMint = async () => {
+  const handleMint = async () => {
     if (!wallet?.adapter || !tierInfo) {
       toast.error("Wallet or tier info not available");
       return;
@@ -80,14 +106,14 @@ const VerifyMint: React.FC = () => {
     setStatus("loading");
 
     try {
-      console.log('🎯 VerifyMint - Tentative de mint RÉEL:', { 
-        tier: tierInfo.tier, 
+      console.log('🎯 VerifyMint - Tentative de mint RÉEL:', {
+        tier: tierInfo.tier,
         nftNumber: tierInfo.nftNumber,
-        candyMachine: CANDY_MACHINE_ID 
+        candyMachine: CANDY_MACHINE_ID
       });
-      
+
       const result = await mintNFT(wallet.adapter, CANDY_MACHINE_ID);
-      
+
       if (result.success) {
         toast.success(result.message || `🎉 NFT #${tierInfo.nftNumber} minté !`);
         setStatus("verified");
@@ -174,7 +200,7 @@ const VerifyMint: React.FC = () => {
               <p className="text-xl font-pangolin text-center text-gray-800 mb-4">
                 {tierInfo.message}
               </p>
-              
+
               {/* Détails du solde */}
               <div className="bg-white/70 rounded-lg p-4 mb-6 mx-auto max-w-md">
                 <h3 className="text-lg font-pangolin font-bold text-center mb-2">💰 Détails de votre wallet</h3>
@@ -182,7 +208,7 @@ const VerifyMint: React.FC = () => {
                   <p className="font-pangolin">Solde: <span className="font-bold">{tierInfo.balance.toFixed(4)} SOL</span></p>
                   <p className="font-pangolin">Valeur: <span className="font-bold">${tierInfo.balanceUSD.toLocaleString()}</span></p>
                   <p className="font-pangolin text-sm text-gray-600">
-                    Tier {tierInfo.tier}: ${tierInfo.minThreshold.toLocaleString()} - 
+                    Tier {tierInfo.tier}: ${tierInfo.minThreshold.toLocaleString()} -
                     {tierInfo.maxThreshold ? `$${tierInfo.maxThreshold.toLocaleString()}` : '∞'}
                   </p>
                   {tierInfo.nftNumber && (
@@ -197,7 +223,7 @@ const VerifyMint: React.FC = () => {
                   )}
                 </div>
               </div>
-              
+
               <div className="text-center">
                 {tierInfo.tier === "TOO_POOR" ? (
                   <button disabled className="blob-button bg-red-400 text-black font-pangolin font-bold text-2xl px-8 py-4 opacity-50 cursor-not-allowed">
