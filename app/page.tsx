@@ -189,13 +189,41 @@ export default function HomePage() {
       <Toaster position="top-center" />
       <Toaster position="top-center" />
 
-      {/* VISUAL DEBUGGER (Tap 3x on Logo to toggle?) - Just visible for now */}
-      <div className="fixed top-0 left-0 bg-black/80 text-green-400 p-2 text-xs z-[9999] max-w-[200px] pointer-events-none opacity-50 hover:opacity-100">
+      {/* VISUAL DEBUGGER */}
+      <div className="fixed top-0 left-0 bg-black/90 text-green-400 p-2 text-xs z-[9999] max-w-[200px] font-mono break-all opacity-80">
+        <p className="font-bold underline mb-1">DEBUG PANEL</p>
         <p>Status: {connected ? 'Connected' : 'Disconnected'}</p>
         <p>Connecting: {connecting ? 'YES' : 'No'}</p>
-        <p>ReadyState: {readyState}</p>
+        <p>Ready: {readyState}</p>
         <p>Pubkey: {publicKey ? publicKey.toBase58().slice(0, 6) : 'Null'}</p>
         <p>Wallet: {wallet?.adapter?.name || 'None'}</p>
+        <p>Network: {process.env.NEXT_PUBLIC_SOLANA_TESTNET === 'true' ? 'DEVNET' : 'MAINNET'}</p>
+        <p>Origin: {typeof window !== 'undefined' ? window.location.origin : 'SSR'}</p>
+
+        <div className="mt-2 text-yellow-300">
+          {error && <p>Last Err: {error.slice(0, 50)}</p>}
+        </div>
+
+        <button
+          onClick={async () => {
+            try {
+              setLoading(true);
+              if (!wallet) return toast.error("No wallet selected");
+              toast("Connecting raw...");
+              await wallet.adapter.connect();
+              toast.success("Connected!");
+            } catch (e: any) {
+              console.error("Manual Connect Error:", e);
+              setError(e.message || String(e));
+              toast.error(`Conn Err: ${e.message}`);
+            } finally {
+              setLoading(false);
+            }
+          }}
+          className="mt-2 bg-green-700 text-white px-2 py-1 rounded w-full hover:bg-green-600"
+        >
+          FORCE CONNECT
+        </button>
       </div>
 
       {/* WalletConnect now lives in the Header component */}
