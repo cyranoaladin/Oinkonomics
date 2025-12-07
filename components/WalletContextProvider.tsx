@@ -27,6 +27,11 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
         if (typeof window === 'undefined') {
             return [];
         }
+
+        // Dynamic URI to ensure MWA matches the current sub-domain (preventing "Malicious App" or silent rejection)
+        const currentOrigin = window.location.origin;
+        const iconUrl = `${currentOrigin}/favicon.ico`;
+
         return [
             // 1. Mobile Wallet Adapter (Android/iOS Native)
             // Prioritized for mobile experience to avoid browser conflicts
@@ -34,8 +39,8 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
                 addressSelector: createDefaultAddressSelector(),
                 appIdentity: {
                     name: APP_METADATA.name,
-                    uri: APP_METADATA.uri,
-                    icon: APP_METADATA.icon
+                    uri: currentOrigin, // Must match the actual browser URL
+                    icon: iconUrl
                 },
                 authorizationResultCache: createDefaultAuthorizationResultCache(),
                 cluster: network,
@@ -51,8 +56,8 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
                     metadata: {
                         name: APP_METADATA.name,
                         description: APP_METADATA.description,
-                        url: APP_METADATA.uri,
-                        icons: [APP_METADATA.uri + 'favicon.ico']
+                        url: currentOrigin,
+                        icons: [iconUrl]
                     }
                 }
             })
