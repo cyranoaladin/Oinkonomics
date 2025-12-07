@@ -27,17 +27,20 @@ const VerifyMint: React.FC = () => {
   const [tierInfo, setTierInfo] = useState<TierInfo | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  /* 
+   * NEW SECURE FLOW:
+   * 1. Request Challenge (Nonce)
+   * 2. Sign Challenge
+   * 3. Verify on Backend
+   * 4. Get Verified Tier (Server-Side)
+   */
   const handleVerify = async () => {
     if (!publicKey) {
       toast.error("Please connect your wallet first");
       return;
     }
 
-    // Force strict "Sign Message" validation
-    // Cast to any because the base Adapter type definition in @solana/wallet-adapter-base is sometimes strict
-    // but the runtime check ensures signMessage exists
     const adapter = wallet?.adapter as any;
-
     if (!adapter?.signMessage) {
       toast.error("Wallet does not support message signing! (Are you using a Ledger?)");
       return;
@@ -46,103 +49,151 @@ const VerifyMint: React.FC = () => {
     setStatus("loading");
     setErrorMessage(null);
 
+    const loadToast = toast.loading("Verifying Identity...");
+
     try {
-      // 1. Get Nonce from Backend (Standard Auth Flow)
-      const nonceRes = await fetch('/api/auth/nonce');
+      // 1. Get Nonce
+      const nonceRes = await fetch('/api/auth/nonce', { cache: 'no-store' });
       if (!nonceRes.ok) throw new Error('Failed to fetch Secure Nonce');
       const { message, nonce } = await nonceRes.json();
 
-      // 2. Request Signature (The Popup!)
+      // 2. Client Signing (The User Action)
       const encodedMessage = new TextEncoder().encode(message);
       const signatureBytes = await adapter.signMessage(encodedMessage);
       const signature = bs58.encode(signatureBytes);
 
-      toast.success("Identity Signed! Verifying on Server...");
+      toast.loading("Verifying with Server...", { id: loadToast });
 
-      // 3. Verify Signature on Backend
+      // 3. Verify Signature
       const authRes = await fetch('/api/auth/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          publicKey: publicKey.toBase58(),
+          publicKey: publicKey.toBase58(), // Still send public key for check
           message,
-          signature,
-          nonce
+          signature
         })
       });
 
-      if (!authRes.ok) throw new Error('Server rejected signature');
-
-      // 4. If Authenticated, Get Tier Info (Business Logic)
-      const response = await fetch("/api/verify-tier", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ walletAddress: publicKey.toBase58() }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setTierInfo(data);
-        setStatus("verified");
-        toast.success(`${data.message}`);
-      } else {
-        const errorData = await response.json();
-        setErrorMessage(errorData.message || "Verification failed");
-        setStatus("error");
-        toast.error(errorData.message || "Verification failed");
+      if (!authRes.ok) {
+        const err = await authRes.json();
+        throw new Error(err.message || 'Signature verification failed');
       }
+
+      toast.loading("Calculating Wealth Tier...", { id: loadToast });
+
+      // 4. Get Authoritative Tier (Secure Context)
+      const tierRes = await fetch("/api/tiers/current");
+
+      if (!tierRes.ok) {
+        if (tierRes.status === 401) throw new Error("Session invalid. Please verification again.");
+        throw new Error("Failed to fetch verified tier");
+      }
+
+      const tierData = await tierRes.json();
+
+      if (!tierData.success) {
+        throw new Error(tierData.error || "Unknown Tier Error");
+      }
+
+      // Success!
+      setTierInfo(tierData.data);
+      setStatus("verified");
+      toast.success(`${tierData.data.tier} Verified!`, { id: loadToast });
+
     } catch (error) {
       console.error("Verification error:", error);
       const message = error instanceof Error ? error.message : "Verification failed";
 
-      if (message.includes("User rejected") || message.includes("rejected")) {
-        setErrorMessage("You must sign the message to verify your tier.");
-        toast.error("Signature rejected. Please try again.");
+      if (message.includes("User rejected")) {
+        toast.error("Signature rejected.", { id: loadToast });
       } else {
-        setErrorMessage(message);
-        toast.error(message);
+        toast.error(message, { id: loadToast });
       }
+      setErrorMessage(message);
       setStatus("error");
     }
   };
 
+  /*
+   * NEW MINT FLOW:
+   * 1. Init Mint on Server (Checks tier, creates mint keypair, signs it, sets budget)
+   * 2. Receive Partial Transaction
+   * 3. User Signs (Fee Payer)
+   * 4. Broadcast
+   */
   const handleMint = async () => {
     if (!wallet?.adapter || !tierInfo) {
       toast.error("Wallet or tier info not available");
       return;
     }
 
-    // Empêcher le mint pour Oinkless
     if (tierInfo.tier === "Oinkless") {
       toast.error("😱 You need at least $10 to mint! Come back when you're less poor!");
       return;
     }
 
-    // VRAIE Candy Machine unique qui gère toute la collection Oinkonomics 
-    // La logique de tier se base sur le numéro NFT assigné (0-99 Oinklings, 100-199 Midings, 200-299 Oinklords)
-    const CANDY_MACHINE_ID = "8HTSVL3fNTg8CugR8veRGVEyLhz5CBbkW2T4m54zdTAn";
-
     setStatus("loading");
+    const loadToast = toast.loading(`Initializing Mint for ${tierInfo.tier}...`);
 
     try {
-      console.log('🎯 VerifyMint - Tentative de mint RÉEL:', {
-        tier: tierInfo.tier,
-        nftNumber: tierInfo.nftNumber,
-        candyMachine: CANDY_MACHINE_ID
+      // 1. Initialize on Backend
+      const initRes = await fetch('/api/mint/init', {
+        method: 'POST'
       });
 
-      const result = await mintNFT(wallet.adapter, CANDY_MACHINE_ID);
-
-      if (result.success) {
-        toast.success(result.message || `🎉 NFT #${tierInfo.nftNumber} minté !`);
-        setStatus("verified");
-      } else {
-        throw new Error(result.error || 'Échec du mint');
+      if (!initRes.ok) {
+        const err = await initRes.json();
+        throw new Error(err.error || 'Failed to initialize mint');
       }
+
+      const { transaction: base64Tx, message } = await initRes.json();
+
+      toast.loading("Waiting for Approval...", { id: loadToast });
+
+      // 2. Deserialize Transaction
+      // We need to use Umi or Web3.js to handle this.
+      // Since the server returned Umi serialized transaction (Base64), we should use Umi on client to deserialize and sign.
+      // BUT to avoid large bundle size, we can use web3.js if we are careful, OR simply use the 'serialization' helper from utils if available.
+      // Actually, standard wallet adapter expects `Transaction` or `VersionedTransaction` object.
+
+      const { VersionedTransaction } = await import('@solana/web3.js');
+      const txBuffer = Buffer.from(base64Tx, 'base64');
+      const transaction = VersionedTransaction.deserialize(txBuffer);
+
+      // 3. User Signs
+      const adapter = wallet.adapter as any;
+      if (!adapter.signTransaction) {
+        throw new Error('Wallet does not support transaction signing!');
+      }
+      const signedTx = await adapter.signTransaction(transaction);
+
+      toast.loading("Broadcasting to Solana...", { id: loadToast });
+
+      // 4. Send Raw Transaction
+      // We need a connection object. We can get it from useConnection() hook or create one.
+      // Since we are inside a component, useConnection() is better but let's use the standard endpoint for now to be safe.
+      const { Connection } = await import('@solana/web3.js');
+      const connection = new Connection(process.env.NEXT_PUBLIC_RPC_URL || 'https://api.devnet.solana.com');
+
+      const signature = await connection.sendRawTransaction(signedTx.serialize());
+
+      toast.loading("Confirming...", { id: loadToast });
+
+      // 5. Confirm
+      const confirmation = await connection.confirmTransaction(signature, 'confirmed');
+
+      if (confirmation.value.err) {
+        throw new Error('Transaction confirmed but failed on chain');
+      }
+
+      toast.success("Mint Successful! 🎉", { id: loadToast });
+      setStatus("verified"); // Or specific 'minted' status
+
     } catch (error) {
-      console.error('❌ VerifyMint - Erreur:', error);
+      console.error('Minting error:', error);
       const message = error instanceof Error ? error.message : "Minting failed";
-      toast.error(`❌ ${message}`);
+      toast.error(`❌ ${message}`, { id: loadToast });
       setStatus("error");
     }
   };
