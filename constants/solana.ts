@@ -2,9 +2,11 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { clusterApiUrl } from '@solana/web3.js';
 
 // Determine the network based on environment variable
-export const SOLANA_NETWORK = process.env.NEXT_PUBLIC_SOLANA_TESTNET === 'true'
-    ? WalletAdapterNetwork.Devnet
-    : WalletAdapterNetwork.Mainnet;
+// Determine the network based on environment variable (Defaults to DEVNET for this project phase)
+// Crucial: Mismatch between Mainnet adapter and Devnet RPC causes connection failures on mobile
+export const SOLANA_NETWORK = process.env.NEXT_PUBLIC_SOLANA_TESTNET === 'false'
+    ? WalletAdapterNetwork.Mainnet
+    : WalletAdapterNetwork.Devnet;
 
 // Determine the RPC Endpoint
 // Priorities:
@@ -20,7 +22,7 @@ export const WALLETCONNECT_RELAY_URL = 'wss://relay.walletconnect.com';
 
 export const APP_METADATA = {
     name: 'Oinkonomics',
-    uri: 'https://oinkonomics.vercel.app/',
-    icon: '/favicon.ico',
+    uri: 'https://oinkonomics-mfai.vercel.app', // Update to actual production domain
+    icon: 'https://oinkonomics-mfai.vercel.app/favicon.ico', // Absolute URL required for Mobile Wallet Adapter
     description: 'Oinkonomics NFT Mint'
 };
