@@ -121,14 +121,14 @@ export async function POST(request: NextRequest) {
 
 function getTierMessage(tier: string, nftNumber: number | null): string {
   switch (tier) {
-    case 'TOO_POOR':
-      return "😱 You need at least $10 to mint! Come back when you're less poor!";
-    case 'POOR':
-      return "🥉 Bronze Tier - You can mint NFT #" + nftNumber + " (Range: #1-100)";
-    case 'MID':
-      return "🥈 Silver Tier - You can mint NFT #" + nftNumber + " (Range: #100-200)";
-    case 'RICH':
-      return "🥇 Gold Tier - You can mint NFT #" + nftNumber + " (Range: #200-300)";
+    case 'Oinkless':
+      return "😱 You need at least $10 to mint! Come back when you're less Oinkless!";
+    case 'Oinklings':
+      return "🥉 Oinkling Tier - You can mint NFT #" + nftNumber + " (Range: #1-100)";
+    case 'Midings':
+      return "🥈 Miding Tier - You can mint NFT #" + nftNumber + " (Range: #100-200)";
+    case 'Oinklords':
+      return "🥇 Oinklord Tier - You can mint NFT #" + nftNumber + " (Range: #200-300)";
     default:
       return 'Unknown tier';
   }

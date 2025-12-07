@@ -6,7 +6,7 @@ import { mintNFT } from "../lib/utils";
 import bs58 from 'bs58';
 
 type Status = "idle" | "loading" | "verified" | "error";
-type Tier = "TOO_POOR" | "POOR" | "MID" | "RICH";
+type Tier = "Oinkless" | "Oinklings" | "Midings" | "Oinklords";
 
 interface TierInfo {
   tier: Tier;
@@ -112,14 +112,14 @@ const VerifyMint: React.FC = () => {
       return;
     }
 
-    // Empêcher le mint pour TOO_POOR
-    if (tierInfo.tier === "TOO_POOR") {
+    // Empêcher le mint pour Oinkless
+    if (tierInfo.tier === "Oinkless") {
       toast.error("😱 You need at least $10 to mint! Come back when you're less poor!");
       return;
     }
 
     // VRAIE Candy Machine unique qui gère toute la collection Oinkonomics 
-    // La logique de tier se base sur le numéro NFT assigné (0-99 POOR, 100-199 MID, 200-299 RICH)
+    // La logique de tier se base sur le numéro NFT assigné (0-99 Oinklings, 100-199 Midings, 200-299 Oinklords)
     const CANDY_MACHINE_ID = "8HTSVL3fNTg8CugR8veRGVEyLhz5CBbkW2T4m54zdTAn";
 
     setStatus("loading");
@@ -149,14 +149,14 @@ const VerifyMint: React.FC = () => {
 
   const getTierLabel = (tier: Tier) => {
     switch (tier) {
-      case "TOO_POOR":
-        return "Too Poor";
-      case "POOR":
-        return "Poor";
-      case "MID":
-        return "MID";
-      case "RICH":
-        return "Rich";
+      case "Oinkless":
+        return "Oinkless";
+      case "Oinklings":
+        return "Oinklings";
+      case "Midings":
+        return "Midings";
+      case "Oinklords":
+        return "Oinklords";
       default:
         return tier;
     }
@@ -164,13 +164,13 @@ const VerifyMint: React.FC = () => {
 
   const getTierColor = (tier: Tier) => {
     switch (tier) {
-      case "TOO_POOR":
+      case "Oinkless":
         return "bg-red-400 hover:bg-red-500";
-      case "POOR":
+      case "Oinklings":
         return "bg-yellow-300 hover:bg-yellow-400";
-      case "MID":
+      case "Midings":
         return "bg-blue-300 hover:bg-blue-400";
-      case "RICH":
+      case "Oinklords":
         return "bg-purple-300 hover:bg-purple-400";
       default:
         return "bg-gray-300 hover:bg-gray-400";
@@ -244,7 +244,7 @@ const VerifyMint: React.FC = () => {
               </div>
 
               <div className="text-center">
-                {tierInfo.tier === "TOO_POOR" ? (
+                {tierInfo.tier === "Oinkless" ? (
                   <button disabled className="blob-button bg-red-400 text-black font-pangolin font-bold text-2xl px-8 py-4 opacity-50 cursor-not-allowed">
                     <span className="relative z-10">❌ NO MINT FOR YOU! GET $10 FIRST!</span>
                   </button>

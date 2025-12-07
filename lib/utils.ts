@@ -39,10 +39,10 @@ function toUmiInstruction(ix: any) {
 
 // Configuration des tiers basés sur la valeur USD avec numéros NFT
 export const TIER_THRESHOLDS = {
-  TOO_POOR: { min: 0, max: 10, nftRange: null },           // Moins de 10$ - pas de mint possible
-  POOR: { min: 10, max: 1000, nftRange: [1, 100] },       // 10$ à 1000$ → NFT #1-100
-  MID: { min: 1000, max: 10000, nftRange: [100, 200] },   // 1000$ à 10000$ → NFT #100-200
-  RICH: { min: 10000, max: null, nftRange: [200, 300] }   // 10000$+ → NFT #200-300
+  Oinkless: { min: 0, max: 10, nftRange: null },           // Moins de 10$ - pas de mint possible
+  Oinklings: { min: 10, max: 1000, nftRange: [1, 100] },       // 10$ à 1000$ → NFT #1-100
+  Midings: { min: 1000, max: 10000, nftRange: [100, 200] },   // 1000$ à 10000$ → NFT #100-200
+  Oinklords: { min: 10000, max: null, nftRange: [200, 300] }   // 10000$+ → NFT #200-300
 } as const
 
 // Token de la collection (devnet)
@@ -106,46 +106,46 @@ export function getWalletTier(balanceSOL: number, solPriceUSD: number): WalletTi
   const balanceUSD = balanceSOL * (solPriceUSD || 0);
 
   // balance is expressed in SOL, balanceUSD added separately in the returned object
-  if (balanceUSD < TIER_THRESHOLDS.TOO_POOR.max) {
+  if (balanceUSD < TIER_THRESHOLDS.Oinkless.max) {
     return {
-      tier: 'TOO_POOR',
+      tier: 'Oinkless',
       balance: balanceSOL,
       balanceUSD,
-      minThreshold: TIER_THRESHOLDS.TOO_POOR.min,
-      maxThreshold: TIER_THRESHOLDS.TOO_POOR.max,
-      nftRange: TIER_THRESHOLDS.TOO_POOR.nftRange
+      minThreshold: TIER_THRESHOLDS.Oinkless.min,
+      maxThreshold: TIER_THRESHOLDS.Oinkless.max,
+      nftRange: TIER_THRESHOLDS.Oinkless.nftRange
     }
-  } else if (balanceUSD < TIER_THRESHOLDS.POOR.max) {
-    const tier = 'POOR';
+  } else if (balanceUSD < TIER_THRESHOLDS.Oinklings.max) {
+    const tier = 'Oinklings';
     return {
       tier,
       balance: balanceSOL,
       balanceUSD,
-      minThreshold: TIER_THRESHOLDS.POOR.min,
-      maxThreshold: TIER_THRESHOLDS.POOR.max,
-      nftRange: TIER_THRESHOLDS.POOR.nftRange,
+      minThreshold: TIER_THRESHOLDS.Oinklings.min,
+      maxThreshold: TIER_THRESHOLDS.Oinklings.max,
+      nftRange: TIER_THRESHOLDS.Oinklings.nftRange,
       nftNumber: generateNFTNumber(tier)
     }
-  } else if (balanceUSD < TIER_THRESHOLDS.MID.max) {
-    const tier = 'MID';
+  } else if (balanceUSD < TIER_THRESHOLDS.Midings.max) {
+    const tier = 'Midings';
     return {
       tier,
       balance: balanceSOL,
       balanceUSD,
-      minThreshold: TIER_THRESHOLDS.MID.min,
-      maxThreshold: TIER_THRESHOLDS.MID.max,
-      nftRange: TIER_THRESHOLDS.MID.nftRange,
+      minThreshold: TIER_THRESHOLDS.Midings.min,
+      maxThreshold: TIER_THRESHOLDS.Midings.max,
+      nftRange: TIER_THRESHOLDS.Midings.nftRange,
       nftNumber: generateNFTNumber(tier)
     }
   } else {
-    const tier = 'RICH';
+    const tier = 'Oinklords';
     return {
       tier,
       balance: balanceSOL,
       balanceUSD,
-      minThreshold: TIER_THRESHOLDS.RICH.min,
-      maxThreshold: TIER_THRESHOLDS.RICH.max,
-      nftRange: TIER_THRESHOLDS.RICH.nftRange,
+      minThreshold: TIER_THRESHOLDS.Oinklords.min,
+      maxThreshold: TIER_THRESHOLDS.Oinklords.max,
+      nftRange: TIER_THRESHOLDS.Oinklords.nftRange,
       nftNumber: generateNFTNumber(tier)
     }
   }
@@ -324,46 +324,46 @@ export async function verifyWalletTier(walletAddress: string): Promise<WalletTie
 // New function to determine wallet tier based on total value (SOL + tokens)
 export function getWalletTierWithTotalValue(balanceSOL: number, solPriceUSD: number, totalValueUSD: number): WalletTierInfo {
   // balance is expressed in SOL, totalValueUSD is the combined value of SOL + tokens
-  if (totalValueUSD < TIER_THRESHOLDS.TOO_POOR.max) {
+  if (totalValueUSD < TIER_THRESHOLDS.Oinkless.max) {
     return {
-      tier: 'TOO_POOR',
+      tier: 'Oinkless',
       balance: balanceSOL,
       balanceUSD: totalValueUSD, // Use total value for tier calculation
-      minThreshold: TIER_THRESHOLDS.TOO_POOR.min,
-      maxThreshold: TIER_THRESHOLDS.TOO_POOR.max,
-      nftRange: TIER_THRESHOLDS.TOO_POOR.nftRange
+      minThreshold: TIER_THRESHOLDS.Oinkless.min,
+      maxThreshold: TIER_THRESHOLDS.Oinkless.max,
+      nftRange: TIER_THRESHOLDS.Oinkless.nftRange
     }
-  } else if (totalValueUSD < TIER_THRESHOLDS.POOR.max) {
-    const tier = 'POOR';
+  } else if (totalValueUSD < TIER_THRESHOLDS.Oinklings.max) {
+    const tier = 'Oinklings';
     return {
       tier,
       balance: balanceSOL,
       balanceUSD: totalValueUSD, // Use total value for tier calculation
-      minThreshold: TIER_THRESHOLDS.POOR.min,
-      maxThreshold: TIER_THRESHOLDS.POOR.max,
-      nftRange: TIER_THRESHOLDS.POOR.nftRange,
+      minThreshold: TIER_THRESHOLDS.Oinklings.min,
+      maxThreshold: TIER_THRESHOLDS.Oinklings.max,
+      nftRange: TIER_THRESHOLDS.Oinklings.nftRange,
       nftNumber: generateNFTNumber(tier)
     }
-  } else if (totalValueUSD < TIER_THRESHOLDS.MID.max) {
-    const tier = 'MID';
+  } else if (totalValueUSD < TIER_THRESHOLDS.Midings.max) {
+    const tier = 'Midings';
     return {
       tier,
       balance: balanceSOL,
       balanceUSD: totalValueUSD, // Use total value for tier calculation
-      minThreshold: TIER_THRESHOLDS.MID.min,
-      maxThreshold: TIER_THRESHOLDS.MID.max,
-      nftRange: TIER_THRESHOLDS.MID.nftRange,
+      minThreshold: TIER_THRESHOLDS.Midings.min,
+      maxThreshold: TIER_THRESHOLDS.Midings.max,
+      nftRange: TIER_THRESHOLDS.Midings.nftRange,
       nftNumber: generateNFTNumber(tier)
     }
   } else {
-    const tier = 'RICH';
+    const tier = 'Oinklords';
     return {
       tier,
       balance: balanceSOL,
       balanceUSD: totalValueUSD, // Use total value for tier calculation
-      minThreshold: TIER_THRESHOLDS.RICH.min,
-      maxThreshold: TIER_THRESHOLDS.RICH.max,
-      nftRange: TIER_THRESHOLDS.RICH.nftRange,
+      minThreshold: TIER_THRESHOLDS.Oinklords.min,
+      maxThreshold: TIER_THRESHOLDS.Oinklords.max,
+      nftRange: TIER_THRESHOLDS.Oinklords.nftRange,
       nftNumber: generateNFTNumber(tier)
     }
   }
@@ -371,10 +371,10 @@ export function getWalletTierWithTotalValue(balanceSOL: number, solPriceUSD: num
 
 // In-memory tracking for minted NFT numbers by tier (in production, this would use a database)
 const mintedNFTsByTier: Record<WalletTier, Set<number>> = {
-  TOO_POOR: new Set(),
-  POOR: new Set(),
-  MID: new Set(),
-  RICH: new Set()
+  Oinkless: new Set(),
+  Oinklings: new Set(),
+  Midings: new Set(),
+  Oinklords: new Set()
 };
 
 export function generateNFTNumber(tier: WalletTier): number | null {

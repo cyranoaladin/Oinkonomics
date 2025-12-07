@@ -7,7 +7,7 @@ declare module '@solana/wallet-adapter-react-ui/styles.css';
 declare module './globals.css';
 
 // Types pour les tiers de wallet
-export type WalletTier = 'TOO_POOR' | 'POOR' | 'MID' | 'RICH';
+export type WalletTier = 'Oinkless' | 'Oinklings' | 'Midings' | 'Oinklords';
 
 export interface WalletTierInfo {
   tier: WalletTier;
