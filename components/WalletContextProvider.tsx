@@ -5,20 +5,8 @@ import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
-import {
-    PhantomWalletAdapter,
-    SolflareWalletAdapter,
-    TorusWalletAdapter,
-    LedgerWalletAdapter,
-    MathWalletAdapter,
-    Coin98WalletAdapter,
-    CoinbaseWalletAdapter,
-    TrustWalletAdapter,
-    SolongWalletAdapter,
-    TokenPocketWalletAdapter,
-    TokenaryWalletAdapter,
-    SafePalWalletAdapter
-} from '@solana/wallet-adapter-wallets';
+// Adapters removed to rely on MWA and WalletConnect
+// import { ... } from '@solana/wallet-adapter-wallets';
 import { WalletConnectWalletAdapter } from '@solana/wallet-adapter-walletconnect';
 import {
     SolanaMobileWalletAdapter,
@@ -52,8 +40,6 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
                 cluster: network,
                 onWalletNotFound: createDefaultWalletNotFoundHandler()
             }),
-            new PhantomWalletAdapter(),
-            new SolflareWalletAdapter(),
             new WalletConnectWalletAdapter({
                 network: network,
                 options: {
@@ -65,16 +51,7 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
                         icons: ['https://oinkonomics.vercel.app/favicon.ico']
                     }
                 }
-            }),
-            new TorusWalletAdapter(),
-            new LedgerWalletAdapter(),
-            new MathWalletAdapter(),
-            new CoinbaseWalletAdapter(),
-            new TrustWalletAdapter(),
-            new SolongWalletAdapter(),
-            new TokenPocketWalletAdapter(),
-            new TokenaryWalletAdapter(),
-            new SafePalWalletAdapter()
+            })
         ];
     }, [network]);
 
