@@ -70,6 +70,7 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
             new MathWalletAdapter(),
             new Coin98WalletAdapter(),
             new CoinbaseWalletAdapter(),
+            new TrustWalletAdapter(),
             new SolongWalletAdapter(),
             new TokenPocketWalletAdapter(),
             new TokenaryWalletAdapter(),
