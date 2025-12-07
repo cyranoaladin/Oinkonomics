@@ -43,7 +43,8 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
             new WalletConnectWalletAdapter({
                 network: network,
                 options: {
-                    projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
+                    // Using provided ID (Sanitized: first 32 chars of the provided string)
+                    projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'cf0f4c50b8001a0045e9b9f3971dbdc0',
                     relayUrl: 'wss://relay.walletconnect.com',
                     metadata: {
                         name: 'Oinkonomics',
