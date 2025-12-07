@@ -32,36 +32,64 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
         const currentOrigin = window.location.origin;
         const iconUrl = `${currentOrigin}/favicon.ico`;
 
-        return [
-            // 1. Mobile Wallet Adapter (Android/iOS Native)
-            // Prioritized for mobile experience to avoid browser conflicts
-            new SolanaMobileWalletAdapter({
-                addressSelector: createDefaultAddressSelector(),
-                appIdentity: {
-                    name: APP_METADATA.name,
-                    uri: currentOrigin, // Must match the actual browser URL
-                    icon: iconUrl
-                },
-                authorizationResultCache: createDefaultAuthorizationResultCache(),
-                cluster: network,
-                onWalletNotFound: createDefaultWalletNotFoundHandler()
-            }),
-            // 2. WalletConnect (Trust Wallet, Metamask, others)
-            // Critical: Needs Project ID and Relay URL
-            new WalletConnectWalletAdapter({
-                network: network,
-                options: {
-                    projectId: WALLETCONNECT_PROJECT_ID,
-                    relayUrl: WALLETCONNECT_RELAY_URL,
-                    metadata: {
+        // Check if running on mobile device
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        console.log('[WalletProvider] Initializing...', {
+            network,
+            projectId: WALLETCONNECT_PROJECT_ID ? 'Set' : 'Missing',
+            isMobile: isMobileDevice
+        });
+
+        if (isMobileDevice) {
+            // Mobile: Strict List (MWA + WalletConnect Only)
+            // WE DO NOT INCLUDE INJECTED ADAPTERS (Phantom / Solflare) here to avoid conflicts
+            return [
+                new SolanaMobileWalletAdapter({
+                    addressSelector: createDefaultAddressSelector(),
+                    appIdentity: {
                         name: APP_METADATA.name,
-                        description: APP_METADATA.description,
-                        url: currentOrigin,
-                        icons: [iconUrl]
+                        uri: currentOrigin,
+                        icon: iconUrl
+                    },
+                    authorizationResultCache: createDefaultAuthorizationResultCache(),
+                    cluster: network,
+                    onWalletNotFound: createDefaultWalletNotFoundHandler()
+                }),
+                new WalletConnectWalletAdapter({
+                    network: network,
+                    options: {
+                        projectId: WALLETCONNECT_PROJECT_ID,
+                        relayUrl: WALLETCONNECT_RELAY_URL,
+                        metadata: {
+                            name: APP_METADATA.name,
+                            description: APP_METADATA.description,
+                            url: currentOrigin,
+                            icons: [iconUrl]
+                        }
                     }
-                }
-            })
-        ];
+                })
+            ];
+        } else {
+            // Desktop: Standard List (Injected + WalletConnect)
+            // Note: We'll add standard adapters later if needed, but for now WalletConnect handles most desktop QR cases
+            // and standard Extensions inject themselves automatically even if not explicitly listed in standard wallet-adapter
+            return [
+                new WalletConnectWalletAdapter({
+                    network: network,
+                    options: {
+                        projectId: WALLETCONNECT_PROJECT_ID,
+                        relayUrl: WALLETCONNECT_RELAY_URL,
+                        metadata: {
+                            name: APP_METADATA.name,
+                            description: APP_METADATA.description,
+                            url: currentOrigin,
+                            icons: [iconUrl]
+                        }
+                    }
+                })
+            ];
+        }
     }, [network]);
 
     return (
