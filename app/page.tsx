@@ -23,12 +23,16 @@ type VerifyResponse = {
 };
 
 export default function HomePage() {
-  const { publicKey, wallet, connected, connect } = useWallet();
+  const { publicKey, wallet, connected, connect, connecting, disconnecting } = useWallet();
+  const readyState = wallet?.readyState;
   const [loading, setLoading] = useState(false);
   const [minting, setMinting] = useState(false);
   const [data, setData] = useState<VerifyResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState(true);
+
+  // DEBUGGER STATE
+  const [showDebug, setShowDebug] = useState(false);
 
   const walletAddress = useMemo(() => publicKey?.toBase58() ?? null, [publicKey]);
 
@@ -183,6 +187,17 @@ export default function HomePage() {
   return (
     <main className="min-h-screen relative overflow-hidden">
       <Toaster position="top-center" />
+      <Toaster position="top-center" />
+
+      {/* VISUAL DEBUGGER (Tap 3x on Logo to toggle?) - Just visible for now */}
+      <div className="fixed top-0 left-0 bg-black/80 text-green-400 p-2 text-xs z-[9999] max-w-[200px] pointer-events-none opacity-50 hover:opacity-100">
+        <p>Status: {connected ? 'Connected' : 'Disconnected'}</p>
+        <p>Connecting: {connecting ? 'YES' : 'No'}</p>
+        <p>ReadyState: {readyState}</p>
+        <p>Pubkey: {publicKey ? publicKey.toBase58().slice(0, 6) : 'Null'}</p>
+        <p>Wallet: {wallet?.adapter?.name || 'None'}</p>
+      </div>
+
       {/* WalletConnect now lives in the Header component */}
 
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-white/40 dark:via-white/5 dark:to-white/10" />

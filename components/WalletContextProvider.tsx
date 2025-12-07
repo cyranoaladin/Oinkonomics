@@ -23,6 +23,8 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
     const endpoint = useMemo(() => SOLANA_RPC_ENDPOINT, []);
     const network = SOLANA_NETWORK;
 
+    const [userIsMobile, setUserIsMobile] = React.useState(false);
+
     const wallets = useMemo(() => {
         if (typeof window === 'undefined') {
             return [];
@@ -34,6 +36,11 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
 
         // Check if running on mobile device
         const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        // Update state logic for autoConnect prop
+        if (isMobileDevice !== userIsMobile) {
+            setUserIsMobile(isMobileDevice);
+        }
 
         console.log('[WalletProvider] Initializing...', {
             network,
@@ -94,7 +101,7 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
 
     return (
         <ConnectionProvider endpoint={endpoint}>
-            <WalletProvider wallets={wallets} autoConnect>
+            <WalletProvider wallets={wallets} autoConnect={!userIsMobile}>
                 <WalletModalProvider>
                     {children}
                 </WalletModalProvider>

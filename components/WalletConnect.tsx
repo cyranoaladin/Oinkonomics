@@ -12,13 +12,7 @@ const WalletConnect = () => {
   useEffect(() => {
     setMounted(true);
     setOnMobile(isMobile());
-    // Déclenche la connexion automatique si on est dans le navigateur Phantom ou Solflare
-    if (isMobile() && (window.navigator.userAgent.includes('Phantom') || window.navigator.userAgent.includes('Solflare'))) {
-      if (wallet && !connected) {
-        connect();
-      }
-    }
-  }, [wallet, connected, connect]);
+  }, []);
 
   // Deep link generators
   const getPhantomDeeplink = () => {
