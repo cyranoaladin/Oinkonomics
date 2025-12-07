@@ -52,6 +52,7 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
                 cluster: network,
                 onWalletNotFound: createDefaultWalletNotFoundHandler()
             }),
+            new PhantomWalletAdapter(),
             new SolflareWalletAdapter(),
             new WalletConnectWalletAdapter({
                 network: network,
@@ -68,7 +69,6 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
             new TorusWalletAdapter(),
             new LedgerWalletAdapter(),
             new MathWalletAdapter(),
-            new Coin98WalletAdapter(),
             new CoinbaseWalletAdapter(),
             new TrustWalletAdapter(),
             new SolongWalletAdapter(),

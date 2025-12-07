@@ -106,10 +106,13 @@ const WalletConnect = () => {
             fontFamily: 'Space Grotesk, Inter, ui-sans-serif, system-ui, sans-serif',
             fontWeight: 700,
             fontSize: '16px',
-            padding: '12px 24px',
+            padding: '0 24px', // Adjusted padding
             boxShadow: '0 6px 12px rgba(0, 0, 0, 0.15)',
-            minHeight: '48px',
+            height: '48px', // Fixed height
             color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
           className="wallet-adapter-button-trigger transition-transform active:scale-95 hover:scale-105"
         />
