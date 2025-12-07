@@ -20,12 +20,13 @@ const WalletConnect = () => {
     }
   }, [wallet, connected, connect]);
 
+  // Deep link generators
   const getPhantomDeeplink = () => {
     const params = new URLSearchParams({
       dapp_encryption_public_key: "FFTLr4uWg5HdYpvgtEnxtzMQWHEoFjWVWiPQZ7Wxvsfm",
-      cluster: "mainnet-beta", // ou "devnet"
+      cluster: "devnet", // Still on devnet
       app_url: "https://oinkonomics.vercel.app/",
-      redirect_link: window.location.href,
+      redirect_link: typeof window !== 'undefined' ? window.location.href : '',
     });
     return `https://phantom.app/ul/v1/connect?${params.toString()}`;
   };
@@ -33,17 +34,32 @@ const WalletConnect = () => {
   const getSolflareDeeplink = () => {
     const params = new URLSearchParams({
       ref: "https://oinkonomics.vercel.app/",
-      redirect_link: window.location.href,
+      redirect_link: typeof window !== 'undefined' ? window.location.href : '',
     });
     return `https://solflare.com/ul/v1/connect?${params.toString()}`;
   };
 
+  const getTrustDeeplink = () => {
+    return `https://link.trustwallet.com/open_url?coin_id=501&url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`;
+  };
+
   const getBackpackDeeplink = () => {
-    return `backpack://browser?url=${encodeURIComponent(window.location.href)}`;
+    return `backpack://browser?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`;
   };
 
   const getGlowDeeplink = () => {
-    return `glow://browser?url=${encodeURIComponent(window.location.href)}`;
+    return `glow://browser?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`;
+  };
+
+  const [showFallback, setShowFallback] = useState(false);
+
+  // Force disconnect handler
+  const handleReset = async () => {
+    if (wallet && connected) {
+      await wallet.adapter.disconnect();
+    }
+    // Reload page to clear any stuck state
+    window.location.reload();
   };
 
   if (!mounted) {
@@ -57,37 +73,78 @@ const WalletConnect = () => {
     );
   }
 
-  // Removed manual mobile deep links loop to let standard adapter handle it
-  // if (onMobile && !wallet && !connected) { ... }
-
   return (
-    <div className="relative z-50">
+    <div className="relative z-50 flex flex-col items-end">
       {/* Decorative elements (hidden on very small screens) */}
       <div className="absolute -top-1 -left-2 sm:-top-1.5 sm:-left-3 w-2 sm:w-2.5 h-2 sm:h-2.5 bg-yellow-400 rounded-full opacity-80 animate-bounce hidden sm:block" />
       <div className="absolute -top-0.5 -right-1.5 sm:-top-1 sm:-right-2 w-2 sm:w-2.5 h-2 sm:h-2.5 bg-pink-400 rounded-full opacity-80 animate-pulse hidden sm:block" />
       <div className="absolute -bottom-0.5 -left-1.5 sm:-bottom-1 sm:-left-2 w-2 sm:w-2.5 h-2 sm:h-2.5 bg-blue-400 rounded-full opacity-80 animate-bounce hidden sm:block" />
       <div className="absolute -bottom-1 -right-2 sm:-bottom-1.5 sm:-right-3 w-2 sm:w-2.5 h-2 sm:h-2.5 bg-green-400 rounded-full opacity-80 animate-pulse hidden sm:block" />
 
-      <WalletMultiButton
-        style={{
-          background: 'linear-gradient(135deg, #FF8AA8 0%, #FFD36E 100%)',
-          borderRadius: '28px',
-          border: '4px solid black',
-          fontFamily: 'Space Grotesk, Inter, ui-sans-serif, system-ui, sans-serif',
-          fontWeight: 700,
-          fontSize: '16px',
-          padding: '12px 20px',
-          boxShadow: '0 6px 12px rgba(0, 0, 0, 0.15)',
-          position: 'relative',
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-          textOverflow: 'ellipsis',
-          WebkitTapHighlightColor: 'transparent',
-          touchAction: 'manipulation',
-          minHeight: '44px',
-        }}
-        className="wallet-adapter-button-trigger transition-transform active:scale-95 hover:scale-105 sm:text-base text-sm sm:px-5 px-4 sm:py-3 py-2.5 sm:border-[4px] border-[3px]"
-      />
+      <div className="flex items-center gap-2">
+        {/* Reset Button (Visible mainly on mobile or when connected but stuck) */}
+        <button
+          onClick={handleReset}
+          className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full border border-black transition-colors"
+          title="Reset Connection"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+        </button>
+
+        <WalletMultiButton
+          style={{
+            background: 'linear-gradient(135deg, #FF8AA8 0%, #FFD36E 100%)',
+            borderRadius: '28px',
+            border: '4px solid black',
+            fontFamily: 'Space Grotesk, Inter, ui-sans-serif, system-ui, sans-serif',
+            fontWeight: 700,
+            fontSize: '16px',
+            padding: '12px 20px',
+            boxShadow: '0 6px 12px rgba(0, 0, 0, 0.15)',
+            position: 'relative',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+            WebkitTapHighlightColor: 'transparent',
+            touchAction: 'manipulation',
+            minHeight: '44px',
+          }}
+          className="wallet-adapter-button-trigger transition-transform active:scale-95 hover:scale-105 sm:text-base text-sm sm:px-5 px-4 sm:py-3 py-2.5 sm:border-[4px] border-[3px]"
+        />
+      </div>
+
+      {/* Fallback for Mobile Users */}
+      {onMobile && !connected && (
+        <div className="mt-2 flex flex-col items-end">
+          <button
+            onClick={() => setShowFallback(!showFallback)}
+            className="text-xs text-gray-500 underline hover:text-black mb-2"
+          >
+            Trouble connecting?
+          </button>
+
+          {showFallback && (
+            <div className="flex flex-col gap-2 bg-white p-3 rounded-xl border-2 border-black shadow-lg animate-in slide-in-from-top-2">
+              <span className="text-xs font-bold text-center mb-1">Try Direct Links:</span>
+              <a href={getPhantomDeeplink()} className="text-xs text-center px-3 py-2 rounded-lg bg-[#AB9FF2] text-white border border-black hover:opacity-90">
+                Phantom
+              </a>
+              <a href={getSolflareDeeplink()} className="text-xs text-center px-3 py-2 rounded-lg bg-[#FC7225] text-white border border-black hover:opacity-90">
+                Solflare
+              </a>
+              <a href={getTrustDeeplink()} className="text-xs text-center px-3 py-2 rounded-lg bg-[#3375BB] text-white border border-black hover:opacity-90">
+                Trust Wallet
+              </a>
+              <a href={getBackpackDeeplink()} className="text-xs text-center px-3 py-2 rounded-lg bg-[#E33E3F] text-white border border-black hover:opacity-90">
+                Backpack
+              </a>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
