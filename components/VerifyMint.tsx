@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { toast } from "react-hot-toast";
 import { mintNFT } from "../lib/utils";
+import bs58 from 'bs58';
 
 type Status = "idle" | "loading" | "verified" | "error";
 type Tier = "TOO_POOR" | "POOR" | "MID" | "RICH";
@@ -33,9 +34,12 @@ const VerifyMint: React.FC = () => {
     }
 
     // Force strict "Sign Message" validation
-    // This triggers the popup in the wallet app
-    if (!wallet?.adapter?.signMessage) {
-      toast.error("Wallet does not support message signing!");
+    // Cast to any because the base Adapter type definition in @solana/wallet-adapter-base is sometimes strict
+    // but the runtime check ensures signMessage exists
+    const adapter = wallet?.adapter as any;
+
+    if (!adapter?.signMessage) {
+      toast.error("Wallet does not support message signing! (Are you using a Ledger?)");
       return;
     }
 
@@ -43,21 +47,36 @@ const VerifyMint: React.FC = () => {
     setErrorMessage(null);
 
     try {
-      // 1. Request Signature (The Popup!)
-      const message = new TextEncoder().encode(
-        `Verify Oinkonomics Ownership\n\nWallet: ${publicKey.toBase58()}\nTimestamp: ${Date.now()}`
-      );
+      // 1. Get Nonce from Backend (Standard Auth Flow)
+      const nonceRes = await fetch('/api/auth/nonce');
+      if (!nonceRes.ok) throw new Error('Failed to fetch Secure Nonce');
+      const { message, nonce } = await nonceRes.json();
 
-      // This line will open Phantom/Trust/Solflare and ask for approval
-      await wallet.adapter.signMessage(message);
+      // 2. Request Signature (The Popup!)
+      const encodedMessage = new TextEncoder().encode(message);
+      const signatureBytes = await adapter.signMessage(encodedMessage);
+      const signature = bs58.encode(signatureBytes);
 
-      toast.success("Identity Verified! Checking Tier...");
+      toast.success("Identity Signed! Verifying on Server...");
 
-      // 2. If signed (didn't throw), proceed to API
+      // 3. Verify Signature on Backend
+      const authRes = await fetch('/api/auth/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          publicKey: publicKey.toBase58(),
+          message,
+          signature,
+          nonce
+        })
+      });
+
+      if (!authRes.ok) throw new Error('Server rejected signature');
+
+      // 4. If Authenticated, Get Tier Info (Business Logic)
       const response = await fetch("/api/verify-tier", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // In a full implementation, we would send the signature to the backend too
         body: JSON.stringify({ walletAddress: publicKey.toBase58() }),
       });
 
@@ -75,7 +94,7 @@ const VerifyMint: React.FC = () => {
     } catch (error) {
       console.error("Verification error:", error);
       const message = error instanceof Error ? error.message : "Verification failed";
-      // Friendly error if user rejected the popup
+
       if (message.includes("User rejected") || message.includes("rejected")) {
         setErrorMessage("You must sign the message to verify your tier.");
         toast.error("Signature rejected. Please try again.");

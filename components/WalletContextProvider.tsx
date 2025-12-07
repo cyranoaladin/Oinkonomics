@@ -44,6 +44,7 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
                 network: network,
                 options: {
                     projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
+                    relayUrl: 'wss://relay.walletconnect.com',
                     metadata: {
                         name: 'Oinkonomics',
                         description: 'Oinkonomics NFT Mint',
