@@ -1,4 +1,5 @@
-# Oinkonomics - Solana NFT Minting Application
+# Oinkonomics - Next.js dApp
+*(Last Update: Deployment Kick for Vercel)*NFT Minting Application
 
 ## Overview
 Oinkonomics is a Proof-of-Wealth NFT collection on Solana that transforms wallet value into collectible pig NFTs. Users connect their wallet, get verified for their portfolio value, and mint free NFTs based on their tier (Poor, MID, or Rich).
