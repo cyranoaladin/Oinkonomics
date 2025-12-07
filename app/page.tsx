@@ -10,7 +10,7 @@ import Community from "../components/Community";
 import { mintNFT } from "../lib/utils";
 
 type VerifyResponse = {
-  tier: "TOO_POOR" | "POOR" | "MID" | "RICH";
+  tier: "Oinkless" | "Oinklings" | "Midings" | "Oinklords";
   walletAddress: string;
   balance: number;
   balanceUSD: number;
@@ -126,19 +126,19 @@ export default function HomePage() {
       return;
     }
 
-    // Empêcher le mint pour TOO_POOR
-    if (data.tier === "TOO_POOR") {
-      toast.error("😱 You need at least $10 to mint! Come back when you're less poor!");
+    // Empêcher le mint pour Oinkless
+    if (data.tier === "Oinkless") {
+      toast.error("😱 You need at least $10 to mint! Come back when you're less Oinkless!");
       return;
     }
 
     // Définir les Candy Machine IDs par tier (using different CMs per tier)
     // Note: These would be different CMs in production, using the same for now as placeholders
     const candyMachineIds = {
-      TOO_POOR: "", // Pas de mint possible
-      POOR: "8HTSVL3fNTg8CugR8veRGVEyLhz5CBbkW2T4m54zdTAn", // POOR tier Candy Machine ID
-      MID: "8HTSVL3fNTg8CugR8veRGVEyLhz5CBbkW2T4m54zdTAn",  // MID tier Candy Machine ID
-      RICH: "8HTSVL3fNTg8CugR8veRGVEyLhz5CBbkW2T4m54zdTAn"  // RICH tier Candy Machine ID
+      Oinkless: "", // Pas de mint possible
+      Oinklings: "8HTSVL3fNTg8CugR8veRGVEyLhz5CBbkW2T4m54zdTAn", // Oinkling candies
+      Midings: "8HTSVL3fNTg8CugR8veRGVEyLhz5CBbkW2T4m54zdTAn",  // Miding candies
+      Oinklords: "8HTSVL3fNTg8CugR8veRGVEyLhz5CBbkW2T4m54zdTAn"  // Oinklord candies
     };
 
     // In a real implementation, you would want to have different CMs for each tier
@@ -174,9 +174,9 @@ export default function HomePage() {
 
   const tierStyle = useMemo(() => {
     if (!data?.tier) return "";
-    if (data.tier === "TOO_POOR") return "from-red-400 to-red-600";
-    if (data.tier === "POOR") return "from-rose-300 to-amber-200";
-    if (data.tier === "MID") return "from-sky-300 to-emerald-200";
+    if (data.tier === "Oinkless") return "from-red-400 to-red-600";
+    if (data.tier === "Oinklings") return "from-rose-300 to-amber-200";
+    if (data.tier === "Midings") return "from-sky-300 to-emerald-200";
     return "from-fuchsia-300 to-cyan-200";
   }, [data?.tier]);
 
@@ -217,10 +217,10 @@ export default function HomePage() {
               </p>
             </div>
             <ul className="text-gray-900 text-base md:text-lg space-y-1">
-              <li><span className="font-semibold text-red-600">TOO_POOR</span>: Less than $10 (No NFT)</li>
-              <li><span className="font-semibold text-yellow-600">POOR</span>: $10 – $1,000 (NFT #1-100)</li>
-              <li><span className="font-semibold text-blue-600">MID</span>: $1,000 – $10,000 (NFT #100-200)</li>
-              <li><span className="font-semibold text-purple-600">RICH</span>: $10,000+ (NFT #200-300)</li>
+              <li><span className="font-semibold text-red-600">Oinkless</span>: Less than $10 (No NFT)</li>
+              <li><span className="font-semibold text-yellow-600">Oinklings</span>: $10 – $1,000 (NFT #1-100)</li>
+              <li><span className="font-semibold text-blue-600">Midings</span>: $1,000 – $10,000 (NFT #100-200)</li>
+              <li><span className="font-semibold text-purple-600">Oinklords</span>: $10,000+ (NFT #200-300)</li>
             </ul>
 
             <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -279,10 +279,10 @@ export default function HomePage() {
       <section className="px-6 md:px-10 pb-20">
         <div className="max-w-6xl mx-auto grid md:grid-cols-4 gap-6">
           {[
-            { t: "TOO_POOR", d: "😱 HOW ARE YOU THAT POOR?! Get at least $10!", c: "from-red-300 to-red-200", nft: "No NFT" },
-            { t: "POOR", d: "Playful, gritty, and hungry for more. Mint NFT #1-100", c: "from-rose-200 to-amber-100", nft: "#1-100" },
-            { t: "MID", d: "Balanced, confident, and on the rise. Mint NFT #100-200", c: "from-sky-200 to-emerald-100", nft: "#100-200" },
-            { t: "RICH", d: "Bold, radiant, and unmistakable. Mint NFT #200-300", c: "from-fuchsia-200 to-cyan-100", nft: "#200-300" },
+            { t: "Oinkless", d: "😱 HOW ARE YOU THAT OINKLESS?! Get at least $10!", c: "from-red-300 to-red-200", nft: "No NFT" },
+            { t: "Oinklings", d: "Playful, gritty, and hungry for more. Mint NFT #1-100", c: "from-rose-200 to-amber-100", nft: "#1-100" },
+            { t: "Midings", d: "Balanced, confident, and on the rise. Mint NFT #100-200", c: "from-sky-200 to-emerald-100", nft: "#100-200" },
+            { t: "Oinklords", d: "Bold, radiant, and unmistakable. Mint NFT #200-300", c: "from-fuchsia-200 to-cyan-100", nft: "#200-300" },
           ].map((x) => (
             <div key={x.t} className={`rounded-3xl border-2 border-black p-6 bg-gradient-to-br ${x.c} shadow-hard tilt transition-transform`}>
               <div className="flex items-center justify-between">
@@ -294,10 +294,10 @@ export default function HomePage() {
               {data?.tier && data.tier === x.t && (
                 <button
                   onClick={handleMint}
-                  disabled={minting || data.tier === "TOO_POOR"}
-                  className={`mt-5 ${data.tier === "TOO_POOR" ? "btn-disabled" : "btn-dark"}`}
+                  disabled={minting || data.tier === "Oinkless"}
+                  className={`mt-5 ${data.tier === "Oinkless" ? "btn-disabled" : "btn-dark"}`}
                 >
-                  {data.tier === "TOO_POOR"
+                  {data.tier === "Oinkless"
                     ? "❌ NO MINT FOR YOU!"
                     : minting ? "Minting…" : `Mint NFT #${data.nftNumber}`
                   }

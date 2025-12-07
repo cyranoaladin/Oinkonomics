@@ -6,22 +6,22 @@ import Image from "next/image";
 export default function TiersExplainer() {
   const tiers = [
     {
-      key: "POOR",
-      title: "POOR",
+      key: "Oinklings",
+      title: "Oinklings",
       range: "< $1,000",
       blurb: "Playful, gritty, and hungry. Entry tier for beginners and degen explorers.",
       gradient: "from-rose-200 to-amber-100"
     },
     {
-      key: "MID",
-      title: "MID",
+      key: "Midings",
+      title: "Midings",
       range: "$1,000 – $10,000",
       blurb: "Balanced and climbing. Comfortable with DeFi and building momentum.",
       gradient: "from-sky-200 to-emerald-100"
     },
     {
-      key: "RICH",
-      title: "RICH",
+      key: "Oinklords",
+      title: "Oinklords",
       range: "> $10,000",
       blurb: "Bold and radiant. Power users with diversified bags and on-chain presence.",
       gradient: "from-fuchsia-200 to-cyan-100"
@@ -39,7 +39,7 @@ export default function TiersExplainer() {
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           {tiers.map((t) => (
             <div key={t.key} className={`rounded-2xl sm:rounded-3xl border-2 border-black p-4 sm:p-6 bg-gradient-to-br ${t.gradient} shadow-hard tilt hover:translate-y-[-2px] transition-transform duration-200`}>
-                            <div className="flex items-center mb-3 sm:mb-4">
+              <div className="flex items-center mb-3 sm:mb-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-black shadow-hard bg-white overflow-hidden">
                   <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
                     <span className="text-xs font-bold text-gray-500">{t.title.charAt(0)}</span>
