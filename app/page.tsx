@@ -317,6 +317,7 @@ export default function HomePage() {
       <section className="px-6 md:px-10 pb-24">
         <div className="max-w-5xl mx-auto">
           <About />
+          <p className="text-center text-xs text-gray-400 mt-12 font-mono">v2.0 - Oinklords Edition 🐷</p>
         </div>
       </section>
     </main>
