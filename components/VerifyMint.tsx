@@ -207,8 +207,8 @@ const VerifyMint: React.FC = () => {
             <div className="card-cartoon p-8 bg-pastel-yellow transform rotate-1">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-black mx-auto mb-4"></div>
-                <h2 className="text-2xl font-pangolin font-bold text-black">Analyzing your wallet...</h2>
-                <p className="text-lg font-pangolin text-gray-700 mt-2">This may take a few moments</p>
+                <h2 className="text-2xl font-pangolin font-bold text-black">Verifying Identity...</h2>
+                <p className="text-lg font-pangolin text-gray-700 mt-2">Checking signature & wallet balance</p>
               </div>
             </div>
           )}
