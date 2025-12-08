@@ -24,22 +24,9 @@ import {
 import { base64 } from '@metaplex-foundation/umi/serializers';
 
 // Environment & Constants
+// Environment & Constants
 const RPC_ENDPOINT = process.env.NEXT_PUBLIC_RPC_URL || 'https://api.devnet.solana.com';
-const CANDY_MACHINE_ID = publicKey(
-    process.env.NEXT_PUBLIC_CANDY_MACHINE_ID!
-);
-const CANDY_GUARD_ID = publicKey(
-    process.env.NEXT_PUBLIC_CANDY_GUARD_ID!
-);
-const COLLECTION_MINT = publicKey(
-    process.env.NEXT_PUBLIC_COLLECTION_MINT!
-);
-const COLLECTION_AUTHORITY = publicKey(
-    process.env.NEXT_PUBLIC_COLLECTION_AUTHORITY!
-);
-const PAYMENT_DESTINATION = publicKey(
-    process.env.NEXT_PUBLIC_PAYMENT_DESTINATION!
-);
+
 
 export async function POST(req: NextRequest) {
     try {
@@ -58,6 +45,22 @@ export async function POST(req: NextRequest) {
         }
 
         // 3. Initialize Server Umi
+        if (
+            !process.env.NEXT_PUBLIC_CANDY_MACHINE_ID ||
+            !process.env.NEXT_PUBLIC_CANDY_GUARD_ID ||
+            !process.env.NEXT_PUBLIC_COLLECTION_MINT ||
+            !process.env.NEXT_PUBLIC_COLLECTION_AUTHORITY ||
+            !process.env.NEXT_PUBLIC_PAYMENT_DESTINATION
+        ) {
+            throw new Error("Missing server-side configuration");
+        }
+
+        const CANDY_MACHINE_ID = publicKey(process.env.NEXT_PUBLIC_CANDY_MACHINE_ID);
+        const CANDY_GUARD_ID = publicKey(process.env.NEXT_PUBLIC_CANDY_GUARD_ID);
+        const COLLECTION_MINT = publicKey(process.env.NEXT_PUBLIC_COLLECTION_MINT);
+        const COLLECTION_AUTHORITY = publicKey(process.env.NEXT_PUBLIC_COLLECTION_AUTHORITY);
+        const PAYMENT_DESTINATION = publicKey(process.env.NEXT_PUBLIC_PAYMENT_DESTINATION);
+
         const umi = createUmi(RPC_ENDPOINT).use(mplCandyMachine());
 
         // We need to set a "dummy" identity just so Umi doesn't complain about missing signer 
