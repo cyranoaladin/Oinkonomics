@@ -119,7 +119,7 @@ export default function HomePage() {
       setLoading(false);
       toast.dismiss(t);
     }
-  }, [walletAddress]);
+  }, [walletAddress, connect, wallet]);
 
   const handleMint = useCallback(async () => {
     if (!wallet?.adapter || !data) return;
