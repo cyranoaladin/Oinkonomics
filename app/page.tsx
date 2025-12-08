@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import toast, { Toaster } from "react-hot-toast";
 // WalletConnect is now rendered inside the Header component
@@ -7,7 +7,7 @@ import About from "../components/About";
 import ImageSwitcher from "../components/ImageSwitcher";
 import TiersExplainer from "../components/TiersExplainer";
 import Community from "../components/Community";
-import { mintNFT } from "../lib/utils";
+import VerifyMint from "../components/VerifyMint";
 
 type VerifyResponse = {
   tier: "Oinkless" | "Oinklings" | "Midings" | "Oinklords";
@@ -25,16 +25,11 @@ type VerifyResponse = {
 export default function HomePage() {
   const { publicKey, wallet, connected, connect, connecting, disconnecting } = useWallet();
   const readyState = wallet?.readyState;
-  const [loading, setLoading] = useState(false);
-  const [minting, setMinting] = useState(false);
-  const [data, setData] = useState<VerifyResponse | null>(null);
+
+  // VISUAL DEBUGGER (Bottom Fixed)
+  const [showDebug, setShowDebug] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState(true);
-
-  // DEBUGGER STATE
-  const [showDebug, setShowDebug] = useState(false);
-
-  const walletAddress = useMemo(() => publicKey?.toBase58() ?? null, [publicKey]);
 
   // Track online/offline status
   useEffect(() => {
@@ -50,139 +45,11 @@ export default function HomePage() {
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
 
-    setIsOnline(navigator.onLine);
-
     return () => {
       window.removeEventListener('online', updateOnlineStatus);
       window.removeEventListener('offline', updateOnlineStatus);
     };
   }, []);
-
-  const handleScan = useCallback(async () => {
-    // Check if online
-    if (!navigator.onLine) {
-      toast.error("You are offline. Please check your connection.");
-      return;
-    }
-
-    let finalWalletAddress = walletAddress;
-
-    if (!finalWalletAddress) {
-      // If not connected, try to trigger the wallet connect flow (useful when user clicks Scan)
-      if (typeof connect === 'function') {
-        try {
-          await connect();
-        } catch (e) {
-          toast.error('Failed to connect wallet');
-          return;
-        }
-      }
-
-      // Try to read public key from the adapter after connect
-      finalWalletAddress = wallet?.adapter?.publicKey?.toBase58() ?? null;
-    }
-
-    if (!finalWalletAddress) {
-      toast.error("Connect your wallet first");
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setData(null);
-    const t = toast.loading("Scanning your wallet…");
-    try {
-      const res = await fetch("/api/verify-tier", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ walletAddress: finalWalletAddress }),
-      });
-
-      if (!res.ok) {
-        if (res.status === 429) {
-          toast.error("Too many requests. Please try again later.");
-        } else {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j.message || "Failed to verify tier");
-        }
-        return;
-      }
-
-      const j: VerifyResponse = await res.json();
-      setData(j);
-      toast.success(`You are ${j.tier} • $${j.balanceUSD.toLocaleString()}`);
-    } catch (e: any) {
-      console.error('Scan error:', e);
-      const msg = e?.message || "Scan failed";
-      setError(msg);
-      toast.error(msg);
-    } finally {
-      setLoading(false);
-      toast.dismiss(t);
-    }
-  }, [walletAddress, connect, wallet]);
-
-  const handleMint = useCallback(async () => {
-    if (!wallet?.adapter || !data) return;
-
-    // Check if online
-    if (!navigator.onLine) {
-      toast.error("You are offline. Minting requires an internet connection.");
-      return;
-    }
-
-    // Empêcher le mint pour Oinkless
-    if (data.tier === "Oinkless") {
-      toast.error("😱 You need at least $10 to mint! Come back when you're less Oinkless!");
-      return;
-    }
-
-    // Définir les Candy Machine IDs par tier (using different CMs per tier)
-    // Note: These would be different CMs in production, using the same for now as placeholders
-    const candyMachineIds = {
-      Oinkless: "", // Pas de mint possible
-      Oinklings: "8HTSVL3fNTg8CugR8veRGVEyLhz5CBbkW2T4m54zdTAn", // Oinkling candies
-      Midings: "8HTSVL3fNTg8CugR8veRGVEyLhz5CBbkW2T4m54zdTAn",  // Miding candies
-      Oinklords: "8HTSVL3fNTg8CugR8veRGVEyLhz5CBbkW2T4m54zdTAn"  // Oinklord candies
-    };
-
-    // In a real implementation, you would want to have different CMs for each tier
-    // For now, we'll add a comment about this and implement some basic validation
-    if (candyMachineIds[data.tier] === "") {
-      toast.error("Minting not available for this tier");
-      return;
-    }
-
-    setMinting(true);
-    const t = toast.loading(`Minting NFT #${data.nftNumber}…`);
-
-    try {
-      const candyMachineId = candyMachineIds[data.tier];
-      console.log('🎯 Tentative de mint:', { tier: data.tier, nftNumber: data.nftNumber, candyMachineId });
-
-      const res = await mintNFT(wallet.adapter, candyMachineId);
-
-      if (res.success) {
-        toast.success(res.message || `🎉 NFT #${data.nftNumber} minté avec succès !`);
-        console.log('✅ Mint réussi:', res);
-      } else {
-        throw new Error(res.error || 'Échec du mint');
-      }
-    } catch (e: any) {
-      console.error('❌ Erreur mint:', e);
-      toast.error(`❌ Échec du mint: ${e?.message || "Erreur inconnue"}`);
-    } finally {
-      setMinting(false);
-      toast.dismiss(t);
-    }
-  }, [wallet?.adapter, data]);
-
-  const tierStyle = useMemo(() => {
-    if (!data?.tier) return "";
-    if (data.tier === "Oinkless") return "from-red-400 to-red-600";
-    if (data.tier === "Oinklings") return "from-rose-300 to-amber-200";
-    if (data.tier === "Midings") return "from-sky-300 to-emerald-200";
-    return "from-fuchsia-300 to-cyan-200";
-  }, [data?.tier]);
 
   return (
     <main className="min-h-screen relative overflow-hidden">
@@ -234,14 +101,16 @@ export default function HomePage() {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-white/40 dark:via-white/5 dark:to-white/10" />
 
       {/* Online/Offline status indicator */}
-      {!isOnline && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-full z-50 shadow-lg">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <span>Offline</span>
+      {
+        !isOnline && (
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-full z-50 shadow-lg">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              <span>Offline</span>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       <section className="px-6 md:px-10 pt-24 md:pt-28 pb-12">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
@@ -269,27 +138,9 @@ export default function HomePage() {
               <li><span className="font-semibold text-purple-600">Oinklords</span>: $10,000+ (NFT #200-300)</li>
             </ul>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <button
-                onClick={handleScan}
-                disabled={loading || !isOnline}
-                className="relative btn-primary group disabled:opacity-60 min-w-[180px]"
-              >
-                <span className="relative z-10">
-                  {loading ? "Scanning…" : connected ? "Scan my wallet" : "Connect & Scan"}
-                </span>
-                <span className="btn-shine" />
-                {!connected && (
-                  <div className="absolute -right-2 -top-2 w-4 h-4 bg-green-400 rounded-full animate-ping" />
-                )}
-              </button>
-
-              {data && (
-                <div className={`inline-flex items-center gap-3 rounded-2xl border-2 border-black px-4 py-3 bg-gradient-to-r ${tierStyle} shadow-hard tilt animate-float`}>
-                  <span className="text-sm font-semibold tracking-widest uppercase">{data.tier}</span>
-                  <span className="text-sm text-black/80">${data.balanceUSD.toLocaleString()}</span>
-                </div>
-              )}
+            {/* Replaced legacy Scan button with VerifyMint component */}
+            <div className="pt-2">
+              <VerifyMint />
             </div>
 
             {error && (
@@ -337,18 +188,6 @@ export default function HomePage() {
               </div>
               <div className="mt-2 text-sm font-bold text-purple-700">NFT Range: {x.nft}</div>
               <p className="mt-3 text-gray-800">{x.d}</p>
-              {data?.tier && data.tier === x.t && (
-                <button
-                  onClick={handleMint}
-                  disabled={minting || data.tier === "Oinkless"}
-                  className={`mt-5 ${data.tier === "Oinkless" ? "btn-disabled" : "btn-dark"}`}
-                >
-                  {data.tier === "Oinkless"
-                    ? "❌ NO MINT FOR YOU!"
-                    : minting ? "Minting…" : `Mint NFT #${data.nftNumber}`
-                  }
-                </button>
-              )}
             </div>
           ))}
         </div>
@@ -366,7 +205,7 @@ export default function HomePage() {
           <p className="text-center text-xs text-gray-400 mt-12 font-mono">v2.0 - Oinklords Edition 🐷</p>
         </div>
       </section>
-    </main>
+    </main >
   );
 }
 

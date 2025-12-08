@@ -25,12 +25,21 @@ import { base64 } from '@metaplex-foundation/umi/serializers';
 
 // Environment & Constants
 const RPC_ENDPOINT = process.env.NEXT_PUBLIC_RPC_URL || 'https://api.devnet.solana.com';
-const CANDY_MACHINE_ID = publicKey("8HTSVL3fNTg8CugR8veRGVEyLhz5CBbkW2T4m54zdTAn");
-const CANDY_GUARD_ID = publicKey("6BBpt7rcWNy6u5ApCpykgpvRV7Vv49JgfAcGxWoUCA9v");
-const COLLECTION_MINT = publicKey("9JCdYQL53tH97ef7zZBTYWYtLAcWSQVMocs2AjqjD6a4");
-// This authority was found to be the actual on-chain authority in previous logs
-const COLLECTION_AUTHORITY = publicKey("FFTLr4uWg5HdYpvgtEnxtzMQWHEoFjWVWiPQZ7Wxvsfm");
-const PAYMENT_DESTINATION = publicKey("5zHBXzhaqKXJRMd7KkuWsb4s8zPyakKdijr9E3jgyG8Z");
+const CANDY_MACHINE_ID = publicKey(
+    process.env.NEXT_PUBLIC_CANDY_MACHINE_ID!
+);
+const CANDY_GUARD_ID = publicKey(
+    process.env.NEXT_PUBLIC_CANDY_GUARD_ID!
+);
+const COLLECTION_MINT = publicKey(
+    process.env.NEXT_PUBLIC_COLLECTION_MINT!
+);
+const COLLECTION_AUTHORITY = publicKey(
+    process.env.NEXT_PUBLIC_COLLECTION_AUTHORITY!
+);
+const PAYMENT_DESTINATION = publicKey(
+    process.env.NEXT_PUBLIC_PAYMENT_DESTINATION!
+);
 
 export async function POST(req: NextRequest) {
     try {

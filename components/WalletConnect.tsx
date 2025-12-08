@@ -45,11 +45,6 @@ const WalletConnect = () => {
     return `glow://browser?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`;
   };
 
-  const [showFallback, setShowFallback] = useState(false);
-
-  // No custom modal state needed anymore
-  // const [isModalOpen, setIsModalOpen] = useState(false);
-
   // Force disconnect handler
   const handleReset = async () => {
     if (wallet && connected) {
@@ -59,19 +54,22 @@ const WalletConnect = () => {
     window.location.reload();
   };
 
-  if (!mounted) {
-    return (
-      <div className="relative">
-        <div
-          className="px-4 py-2 rounded-lg bg-gray-200 border-2 border-black"
-          style={{ minWidth: '180px', minHeight: '40px' }}
-        />
-      </div>
-    );
-  }
+  const [showFallback, setShowFallback] = useState(false);
+
+  // Show fallback options if not connected after 5 seconds on mobile
+  useEffect(() => {
+    if (onMobile && !connected && !wallet) {
+      const timer = setTimeout(() => {
+        setShowFallback(true);
+      }, 5000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowFallback(false);
+    }
+  }, [onMobile, connected, wallet]);
 
   return (
-    <div className="relative z-50 flex flex-col items-end">
+    <div className="relative z-50 flex flex-col items-end gap-2">
       {/* Decorative elements (hidden on very small screens) */}
       <div className="absolute -top-1 -left-2 sm:-top-1.5 sm:-left-3 w-2 sm:w-2.5 h-2 sm:h-2.5 bg-yellow-400 rounded-full opacity-80 animate-bounce hidden sm:block" />
       <div className="absolute -top-0.5 -right-1.5 sm:-top-1 sm:-right-2 w-2 sm:w-2.5 h-2 sm:h-2.5 bg-pink-400 rounded-full opacity-80 animate-pulse hidden sm:block" />
@@ -111,6 +109,18 @@ const WalletConnect = () => {
           className="wallet-adapter-button-trigger transition-transform active:scale-95 hover:scale-105"
         />
       </div>
+
+      {/* Mobile Fallback Links */}
+      {showFallback && (
+        <div className="text-[10px] text-gray-500 bg-white/80 p-2 rounded border border-gray-200 shadow-sm animate-fade-in text-right">
+          <p className="mb-1">Trouble connecting?</p>
+          <div className="flex flex-col gap-1">
+            <a href={getPhantomDeeplink()} className="text-blue-500 underline hover:text-blue-700">Open in Phantom</a>
+            <a href={getSolflareDeeplink()} className="text-orange-500 underline hover:text-orange-700">Open in Solflare</a>
+            <a href={getTrustDeeplink()} className="text-blue-400 underline hover:text-blue-600">Open in Trust Wallet</a>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

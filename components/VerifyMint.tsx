@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { toast } from "react-hot-toast";
-import { mintNFT } from "../lib/utils";
+
 import bs58 from 'bs58';
 
 type Status = "idle" | "loading" | "verified" | "error";

@@ -97,11 +97,11 @@ const WalletContextProvider: FC<{ children: React.ReactNode }> = ({ children }) 
                 })
             ];
         }
-    }, [network]);
+    }, [network, userIsMobile]);
 
     return (
         <ConnectionProvider endpoint={endpoint}>
-            <WalletProvider wallets={wallets} autoConnect={true}>
+            <WalletProvider wallets={wallets} autoConnect={!userIsMobile}>
                 <WalletModalProvider>
                     {children}
                 </WalletModalProvider>
