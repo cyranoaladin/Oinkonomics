@@ -189,40 +189,42 @@ export default function HomePage() {
       <Toaster position="top-center" />
       <Toaster position="top-center" />
 
-      {/* VISUAL DEBUGGER */}
-      <div className="fixed top-0 left-0 bg-black/90 text-green-400 p-2 text-xs z-[9999] max-w-[200px] font-mono break-all opacity-80">
-        <p className="font-bold underline mb-1">DEBUG PANEL</p>
-        <p>Status: {connected ? 'Connected' : 'Disconnected'}</p>
-        <p>Connecting: {connecting ? 'YES' : 'No'}</p>
-        <p>Ready: {readyState}</p>
-        <p>Pubkey: {publicKey ? publicKey.toBase58().slice(0, 6) : 'Null'}</p>
-        <p>Wallet: {wallet?.adapter?.name || 'None'}</p>
-        <p>Network: {process.env.NEXT_PUBLIC_SOLANA_TESTNET === 'true' ? 'DEVNET' : 'MAINNET'}</p>
-        <p>Origin: {typeof window !== 'undefined' ? window.location.origin : 'SSR'}</p>
+      {/* VISUAL DEBUGGER (Bottom Fixed) */}
+      <div className="fixed bottom-0 left-0 right-0 bg-black/95 text-green-400 p-2 text-xs z-[9999] opacity-90 font-mono border-t-2 border-green-500 max-h-[40vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-1">
+          <span className="font-bold underline text-green-300">DEBUG CONSOLE</span>
+          <button onClick={() => window.location.reload()} className="bg-red-900 text-white px-2 rounded">RELOAD APP</button>
+        </div>
 
-        <div className="mt-2 text-yellow-300">
-          {error && <p>Last Err: {error.slice(0, 50)}</p>}
+        <div className="grid grid-cols-2 gap-x-2 text-[10px]">
+          <p>Status: <span className={connected ? "text-green-300" : "text-red-300"}>{connected ? 'CONNECTED' : 'DISCONNECTED'}</span></p>
+          <p>Ready: {readyState}</p>
+          <p>Wallet: {wallet?.adapter?.name || 'None'}</p>
+          <p>Mobile: {typeof window !== 'undefined' && /Android|iPhone/i.test(navigator.userAgent) ? 'YES' : 'NO'}</p>
+        </div>
+
+        <div className="mt-2 border-t border-gray-700 pt-1">
+          <p className="text-yellow-300 break-all">{error ? `ERR: ${error}` : 'No Errors'}</p>
         </div>
 
         <button
           onClick={async () => {
             try {
-              setLoading(true);
-              if (!wallet) return toast.error("No wallet selected");
-              toast("Connecting raw...");
+              setError("Attempting Forced Connection...");
+              if (!wallet) return setError("No wallet selected (Click 'Select Wallet')");
+
+              if (connected) await wallet.adapter.disconnect();
+
               await wallet.adapter.connect();
-              toast.success("Connected!");
+              setError("Success: Connected event fired.");
             } catch (e: any) {
               console.error("Manual Connect Error:", e);
-              setError(e.message || String(e));
-              toast.error(`Conn Err: ${e.message}`);
-            } finally {
-              setLoading(false);
+              setError(`${e.name}: ${e.message}`);
             }
           }}
-          className="mt-2 bg-green-700 text-white px-2 py-1 rounded w-full hover:bg-green-600"
+          className="mt-2 bg-green-700 text-white px-2 py-3 rounded w-full hover:bg-green-600 font-bold text-sm mb-4"
         >
-          FORCE CONNECT
+          FORCE CONNECT (TAP ME)
         </button>
       </div>
 
