@@ -198,6 +198,7 @@ export default function HomePage() {
 
         <div className="grid grid-cols-2 gap-x-2 text-[10px]">
           <p>Status: <span className={connected ? "text-green-300" : "text-red-300"}>{connected ? 'CONNECTED' : 'DISCONNECTED'}</span></p>
+          <p>Adapter: {wallet?.adapter?.connected ? 'TRUE' : 'FALSE'}</p>
           <p>Ready: {readyState}</p>
           <p>Wallet: {wallet?.adapter?.name || 'None'}</p>
           <p>Mobile: {typeof window !== 'undefined' && /Android|iPhone/i.test(navigator.userAgent) ? 'YES' : 'NO'}</p>
